@@ -30,14 +30,15 @@ for index in indexes:
             classes.append("T")
 
        # then remove 11a manually
-        if ("-06A" in index) or ("-06B" in index) or ("-07A" in index) or ("-11A" in index):
+        if ("-06A" in index) or ("-06B" in index) or ("-07A" in index):
 
             classes.append("N")
 
-if len(classes) != data.shape[1]:
+if fileName != "SKCM":
+    if len(classes) != data.shape[1]:
 
-    print("Something goes wrong", len(classes), data.shape[1])
-    exit(1)
+        print("Something goes wrong", len(classes), data.shape[1])
+        exit(1)
 
 # Appending class column
 t_data["Class"] = classes
