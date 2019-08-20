@@ -54,6 +54,7 @@ def train_cv(X, Y):
     y = y.astype(int)
     counts = np.bincount(y)
     paired = counts[0] == counts[1]
+
     if paired:
         half = X.shape[0]//2
         test = [[i, i+half] for i in range(half)]
@@ -64,6 +65,7 @@ def train_cv(X, Y):
         folds = counts[ind]
         kfold = StratifiedKFold(n_splits=folds)
         train = [t for t, test in kfold.split(X, y)]
+
     return train
 
 
@@ -71,7 +73,7 @@ def preprocess_data(x, max_min=False):
 
     standardize = True
 
-    if not max_min:
+    if max_min:
         standardize = False
 
     transformer = PowerTransformer(
@@ -133,7 +135,7 @@ def generate_ranking(path, scores):
         ranking_df.to_csv(name)
         print('end', name)
 
-root = '/datasets'
+root = './datasets/Imbalanced'
 files = [os.path.join(root, i) for i in os.listdir(root)
          if i.endswith('-preproc-filter.csv')]
 
