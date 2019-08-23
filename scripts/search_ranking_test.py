@@ -15,7 +15,6 @@ from sklearn.preprocessing import PowerTransformer
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import make_scorer
 np.random.seed(7)
-import datetime
 
 
 def files_rankings(root, name):
@@ -130,6 +129,12 @@ def process_file(pathD, pathRs):
                 columns=['ID', 'NumberAtts', 'Atts', 'metricOpt'])
             results.set_index('ID', inplace=True)
 
+            filedir = os.path.join(root, 'results', pathD[pathD.rfind('/')+1:].replace('.csv', ''),
+                                   path_rank[path_rank.rfind('-')+1:].replace('.csv', ''))
+            reportDir = os.path.join(filedir, model["model_name"] + '.csv')
+            if os.path.exists(reportDir):
+                continue
+			
             # se puso aqui en 1 para limitar el tiempo de busqueda
             for i in range(1):
                 columns = [indices[i]]
@@ -161,10 +166,7 @@ def process_file(pathD, pathRs):
                             if general_value == 1:
                                 break
                 if general_value == 1:
-                    break
-
-            filedir = os.path.join(root, 'results', pathD[pathD.rfind('/')+1:].replace('.csv', ''),
-                                   path_rank[path_rank.rfind('-')+1:].replace('.csv', ''))
+                    break  
 
             if not os.path.exists(filedir):
                 os.makedirs(filedir)
@@ -172,7 +174,7 @@ def process_file(pathD, pathRs):
             results.index.name = 'ID'
             results.sort_values(['metricOpt', 'NumberAtts'], ascending=[
                                 False, True], inplace=True)
-            results.to_csv(os.path.join(filedir, model["model_name"] + '.csv'))
+            results.to_csv(reportDir)
             
 
 
