@@ -99,7 +99,6 @@ def eval_model(model, X, y, pFolds=None):
 def process_file(pathD, pathRs):
 
     print('init file', pathD)
-
     df = pd.read_csv(pathD, index_col=0)
 
     # Transforming the class att
@@ -115,7 +114,7 @@ def process_file(pathD, pathRs):
         for model in models:
 
             print('model', model['model_name'])
-
+            
             results = pd.DataFrame(
                 columns=['ID', 'NumberAtts', 'Atts', 'metricOpt'])
 
@@ -205,7 +204,7 @@ models = [{"model_name": "SVM",
            }}
           ]
 
-root = './datasets/Imbalanced'
+root = './3'
 files = [(os.path.join(root, i), files_rankings(root, i))
          for i in os.listdir(root) if i.endswith('-filter.csv')]
 
