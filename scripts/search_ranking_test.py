@@ -64,6 +64,7 @@ def one_fold(model, X_train, y_train, X_test, y_test):
 
     print('start fold')
 
+
     transformer = PowerTransformer(
         method='yeo-johnson', standardize=True)
 
@@ -159,6 +160,8 @@ def process_file(pathD, pathRs):
                             'NumberAtts': len(columns),
                             'Atts': ' '.join(columns),
                             'metricOpt': general_value}, ignore_index=True)
+                        'metricOpt': general_value}, ignore_index=True)
+
                         if general_value == 1:
                             break
 
@@ -211,7 +214,7 @@ models = [{"model_name": "SVM",
            }}
           ]
 
-root = './3'
+root = './datasets/Imbalanced'
 files = [(os.path.join(root, i), files_rankings(root, i))
          for i in os.listdir(root) if i.endswith('-filter.csv')]
 
