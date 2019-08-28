@@ -16,6 +16,8 @@ from sklearn.metrics import make_scorer
 
 from joblib import parallel_backend, Parallel, delayed
 
+from CustomGrid import CustomGrid
+
 np.random.seed(7)
 
 
@@ -69,14 +71,9 @@ def one_fold(model, X_train, y_train, X_test, y_test):
 
     transformer.fit(X_train)
 
-    clf = RandomizedSearchCV(model["model"], model["parameters"], n_iter=30,
-                       cv=3, n_jobs=1, scoring='roc_auc', pre_dispatch=0)
+    clf = CustomGrid(model["model"], model["parameters"], 5)
 
-    try:
-        with parallel_backend('loky', n_jobs=1):
-            clf.fit(transformer.transform(X_train), y_train)
-    except:
-        print('Error')
+    clf.fit(transformer.transform(X_train), y_train)
 
     y_predic = clf.predict(transformer.transform(X_test))
 
@@ -155,7 +152,7 @@ def process_file(pathD, pathRs):
                     if (curr_value == 1) or (wilcoxon(general_scores, curr_scores, alternative='less').pvalue <= 0.05):
                         general_value = curr_value
                         columns = new_columns
-                        results.append({
+                        results = results.append({
                             'NumberAtts': len(columns),
                             'Atts': ' '.join(columns),
                             'metricOpt': general_value}, ignore_index=True)
@@ -183,24 +180,24 @@ models = [{"model_name": "SVM",
                "degree": [1, 2, 3]  # degrees to be tested
            }},
 
-          {"model_name": "RF",
-           "model": RandomForestClassifier(),
-           "parameters":  {
-               'n_estimators': [int(x) for x in np.linspace(start=10, stop=100, num=10)
-                                ],  # Number of trees in random forest
-               'max_features': ['auto',
-                                'sqrt'],  # Number of features to consider at every split
-               'max_depth': [int(x) for x in np.linspace(10, 50, num=10)
-                             ],  # Maximum number of levels in tree
-               'min_samples_split':
-               [2, 5, 10],  # Minimum number of samples required to split a node
-               'min_samples_leaf':
-               [1, 2, 4],  # Minimum number of samples required at each leaf node
-               'bootstrap': [True,
-                             False],  # Method of selecting samples for training each tree
-               'criterion': ["gini", "entropy"]  # criteria to be tested
-           }
-           },
+#          {"model_name": "RF",
+#           "model": RandomForestClassifier(),
+#           "parameters":  {
+#               'n_estimators': [int(x) for x in np.linspace(start=10, stop=100, num=10)
+#                                ],  # Number of trees in random forest
+#               'max_features': ['auto',
+#                                'sqrt'],  # Number of features to consider at every split
+#               'max_depth': [int(x) for x in np.linspace(10, 50, num=10)
+#                             ],  # Maximum number of levels in tree
+#               'min_samples_split':
+#               [2, 5, 10],  # Minimum number of samples required to split a node
+#               'min_samples_leaf':
+#               [1, 2, 4],  # Minimum number of samples required at each leaf node
+#               'bootstrap': [True,
+#                             False],  # Method of selecting samples for training each tree
+#               'criterion': ["gini", "entropy"]  # criteria to be tested
+#           }
+#           },
 
           {"model_name": "LR",
            "model": LogisticRegression(),
