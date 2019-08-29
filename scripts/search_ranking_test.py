@@ -14,7 +14,8 @@ from sklearn.preprocessing import PowerTransformer
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import make_scorer
 
-from joblib import parallel_backend, Parallel, delayed
+#import multiprocessing
+#from joblib import parallel_backend, Parallel, delayed
 
 from CustomGrid import CustomGrid
 
@@ -85,16 +86,18 @@ def one_fold(model, X_train, y_train, X_test, y_test):
 def eval_model(model, X, y, pFolds=None):
 
     folds = train_cv(X, y) if pFolds is None else pFolds
-	
-    #scores = [one_fold(model, X[train], y[train], X[test], y[test]) for train, test in folds]
-    scores = Parallel(n_jobs=20)(delayed(one_fold)(model, X[train], y[train], X[test], y[test]) for train, test in folds)
+
+    #with multiprocessing.Pool() as pool:
+    #    scores = pool.starmap(one_fold, [(model, X[train], y[train], X[test], y[test]) for train, test in folds])    
+    scores = [one_fold(model, X[train], y[train], X[test], y[test]) for train, test in folds]
+    #scores = Parallel(n_jobs=2, prefer='threads')(delayed(one_fold)(model, X[train], y[train], X[test], y[test]) for train, test in folds)
 
     results = np.asarray(scores)
 
     return np.round(results.mean(), decimals=3), np.round(results, decimals=3), folds
 
 
-def process_file(pathD, pathRs):
+def process_file(pathD, pathRs, resultsDir):
 
     print('init file', pathD)
 
@@ -119,8 +122,9 @@ def process_file(pathD, pathRs):
 
             results.set_index('ID', inplace=True)
 
-            filedir = os.path.join(root, 'results', pathD[pathD.rfind('/')+1:].replace('.csv', ''),
-                                   path_rank[path_rank.rfind('-')+1:].replace('.csv', ''))
+            filedir = os.path.join(resultsDir, pathD[pathD.rfind('/')+1:pathD.rfind('.')], path_rank[path_rank.rfind('-')+1:path_rank.rfind('.')])
+            if not os.path.exists(filedir):
+                os.makedirs(filedir)
 
             reportDir = os.path.join(filedir, model["model_name"] + '.csv')
 
@@ -138,7 +142,11 @@ def process_file(pathD, pathRs):
                 'metricOpt': general_value}, ignore_index=True)
 
             if general_value == 1:
-                break
+                # Saving the results
+                results.index.name = 'ID'
+                results.sort_values(['metricOpt', 'NumberAtts'], ascending=[False, True], inplace=True)
+                results.to_csv(reportDir)
+                continue
 
             for i in range(1, attr_limit):
 
@@ -158,9 +166,6 @@ def process_file(pathD, pathRs):
                             'metricOpt': general_value}, ignore_index=True)
                         if general_value == 1:
                             break
-
-            if not os.path.exists(filedir):
-                os.makedirs(filedir)
 
             # Saving the results
             results.index.name = 'ID'
@@ -208,9 +213,17 @@ models = [{"model_name": "SVM",
            }}
           ]
 
+import sys
+
 root = './3'
-files = [(os.path.join(root, i), files_rankings(root, i))
-         for i in os.listdir(root) if i.endswith('-filter.csv')]
+resultsDir = './3/results'
+allfiles = os.listdir(root)
+allfiles.sort()
+allfiles = [i for i in allfiles if i.endswith('-filter.csv')]
+allfiles = [allfiles[int(sys.argv[1])]]
+print(allfiles)
+
+files = [(os.path.join(root, i), files_rankings(root, i)) for i in allfiles]
 
 for pathD, pathRs in files:
-    process_file(pathD, pathRs)
+    process_file(pathD, pathRs, resultsDir)
