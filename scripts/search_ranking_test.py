@@ -186,7 +186,7 @@ models = [
            "model": SVC(gamma="auto"),
            "parameters":  {
                # types of kernels to be tested
-               "kernel": ["linear", "rbf", "sigmoid"],
+               "kernel": ["linear", "poly", "rbf", "sigmoid"],
                "C": [0.01, 0.1, 1, 10],  # range of C to be tested
                "degree": [1, 2, 3]  # degrees to be tested
            }},
