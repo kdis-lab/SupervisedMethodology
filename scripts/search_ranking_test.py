@@ -72,7 +72,7 @@ def one_fold(model, X_train, y_train, X_test, y_test):
 
     transformer.fit(X_train)
 
-    clf = CustomGrid(model["model"], model["parameters"], 5)
+    clf = CustomGrid(model["model"], model["parameters"], 3)
 
     clf.fit(transformer.transform(X_train), y_train)
 
@@ -90,6 +90,11 @@ def eval_model(model, X, y, pFolds=None):
     #with multiprocessing.Pool() as pool:
     #    scores = pool.starmap(one_fold, [(model, X[train], y[train], X[test], y[test]) for train, test in folds])    
     scores = [one_fold(model, X[train], y[train], X[test], y[test]) for train, test in folds]
+
+    #scores = []
+    #for train, test in folds:
+    #    scores.append(one_fold(model, X[train], y[train], X[test], y[test]))
+
     #scores = Parallel(n_jobs=2, prefer='threads')(delayed(one_fold)(model, X[train], y[train], X[test], y[test]) for train, test in folds)
 
     results = np.asarray(scores)
@@ -176,11 +181,12 @@ def process_file(pathD, pathRs, resultsDir):
 
 attr_limit = 100
 
-models = [{"model_name": "SVM",
+models = [
+           {"model_name": "SVM",
            "model": SVC(gamma="auto"),
            "parameters":  {
                # types of kernels to be tested
-               "kernel": ["linear", "poly", "rbf", "sigmoid"],
+               "kernel": ["linear", "rbf", "sigmoid"],
                "C": [0.01, 0.1, 1, 10],  # range of C to be tested
                "degree": [1, 2, 3]  # degrees to be tested
            }},
@@ -204,6 +210,19 @@ models = [{"model_name": "SVM",
 #           }
 #           },
 
+           {"model_name": "RF",
+           "model": RandomForestClassifier(),
+           "parameters":  {
+               'max_features': ['auto',
+                                'sqrt'],  # Number of features to consider at every split
+               'min_samples_split':
+               [2, 5, 10],  # Minimum number of samples required to split a node
+               'min_samples_leaf':
+               [1, 2, 4],  # Minimum number of samples required at each leaf node
+               'criterion': ["gini", "entropy"]  # criteria to be tested
+           }
+           },
+
           {"model_name": "LR",
            "model": LogisticRegression(),
            "parameters":  {
@@ -220,7 +239,9 @@ resultsDir = './3/results'
 allfiles = os.listdir(root)
 allfiles.sort()
 allfiles = [i for i in allfiles if i.endswith('-filter.csv')]
+print(allfiles)
 allfiles = [allfiles[int(sys.argv[1])]]
+#allfiles = [allfiles[0]]
 print(allfiles)
 
 files = [(os.path.join(root, i), files_rankings(root, i)) for i in allfiles]
